@@ -1,4 +1,5 @@
 import SpotifyWebApi from "spotify-web-api-node";
+import opn from "opn";
 
 const spotifyService = {
   userCount: 0,
@@ -27,8 +28,7 @@ const spotifyService = {
     });
 
     const authorizeURL = this.spotifyApi.createAuthorizeURL(scopes, state);
-
-    console.log(authorizeURL);
+    opn(authorizeURL, { app: ["chrome.exe"] });
   },
 
   postInit: function(code, io) {
@@ -55,7 +55,7 @@ const spotifyService = {
       this.userCount += 1;
 
       socket.on("play", trackID => {
-        this.playTrack(trackID);
+        this.getCurrent(trackID);
       });
 
       socket.on("disconnect", () => {
@@ -64,13 +64,10 @@ const spotifyService = {
     });
   },
 
-  playTrack(trackID) {
-    console.log(this.spotifyApi.getAccessToken());
-
+  getCurrent() {
     this.spotifyApi.getMyCurrentPlaybackState({}).then(
       data => {
-        // Output items
-        console.log("Now Playing: ", data.body);
+        console.log(data.body);
       },
       function(err) {
         console.log("Something went wrong!", err);
