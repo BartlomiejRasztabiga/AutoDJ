@@ -2,7 +2,6 @@ import SpotifyWebApi from "spotify-web-api-node";
 import opn from "opn";
 
 const spotifyService = {
-  userCount: 0,
   votes: [],
 
   init: function() {
@@ -52,8 +51,6 @@ const spotifyService = {
     console.log("start");
 
     io.on("connection", socket => {
-      this.userCount += 1;
-
       this.spotifyApi.getMyCurrentPlayingTrack().then(data => {
         const initialResponse = {
           currentlyPlaying:
@@ -81,9 +78,7 @@ const spotifyService = {
         socket.emit("votes", this.votes);
       });
 
-      socket.on("disconnect", () => {
-        this.userCount -= 1;
-      });
+      socket.on("disconnect", () => {});
     });
   },
 
