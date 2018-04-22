@@ -3,7 +3,7 @@ import opn from "opn";
 
 const spotifyService = {
   userCount: 0,
-  votes: new Map(),
+  votes: [],
 
   init: function() {
     console.log("init");
@@ -49,6 +49,11 @@ const spotifyService = {
   },
 
   start: function(io) {
+    //TODO TEMP
+    this.votes.push({ name: "track A", votes: 10 });
+    this.votes.push({ name: "track B", votes: 120 });
+    this.votes.push({ name: "track C", votes: 0 });
+
     console.log("start");
 
     io.on("connection", socket => {
@@ -69,6 +74,12 @@ const spotifyService = {
           socket.emit("currentlyPlaying", data.body);
         });
       }, 10000); // every 10 seconds
+
+      socket.on("searchTracksRequest", trackName => {
+        this.spotifyApi.searchTracks(trackName, { limit: 5 }).then(tracks => {
+          socket.emit("searchTracksResults", tracks.body.tracks);
+        });
+      });
 
       socket.on("disconnect", () => {
         this.userCount -= 1;
