@@ -39,7 +39,6 @@ class App extends Component {
     });
 
     this.socket.on("searchTracksResults", tracks => {
-      console.log(tracks);
       this.setState({
         searchTracks: tracks.items
       });
@@ -61,9 +60,18 @@ class App extends Component {
     });
   }
 
-  handleVote(key, event) {
-    console.log(this.state.searchTracks[key]);
+  handleVoteFromSearch(key, event) {
     this.socket.emit("vote", this.state.searchTracks[key]);
+    this.setState({
+      searchTracks: []
+    });
+  }
+
+  handleVote(key, event) {
+    this.socket.emit("vote", this.state.votes[key]);
+    this.setState({
+      searchTracks: []
+    });
   }
 
   render() {
@@ -111,7 +119,7 @@ class App extends Component {
                   {track.artists[0].name + " - " + track.name}
                 </div>
                 <button
-                  onClick={this.handleVote.bind(this, key)}
+                  onClick={this.handleVoteFromSearch.bind(this, key)}
                   type="button"
                   className="btn btn-primary"
                   style={{ marginLeft: "auto" }}

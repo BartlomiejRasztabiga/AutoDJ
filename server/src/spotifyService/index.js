@@ -49,11 +49,6 @@ const spotifyService = {
   },
 
   start: function(io) {
-    //TODO TEMP
-    this.votes.push({ name: "track A", votes: 10 });
-    this.votes.push({ name: "track B", votes: 120 });
-    this.votes.push({ name: "track C", votes: 0 });
-
     console.log("start");
 
     io.on("connection", socket => {
