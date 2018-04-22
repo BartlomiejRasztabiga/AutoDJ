@@ -4,7 +4,7 @@ import FlipMove from "react-flip-move";
 import "./App.css";
 
 class App extends Component {
-  URL = "http://autodj.tk:9000";
+  URL = "http://localhost:9000";
   socket = socketIOClient(this.URL);
 
   constructor(props) {
