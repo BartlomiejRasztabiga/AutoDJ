@@ -81,10 +81,28 @@ const spotifyService = {
         });
       });
 
+      socket.on("vote", track => {
+        this.updateVote(track);
+        socket.emit("votes", this.votes);
+      });
+
       socket.on("disconnect", () => {
         this.userCount -= 1;
       });
     });
+  },
+
+  updateVote(track) {
+    if (this.votes.some(e => e.uri === track.uri)) {
+      const index = this.votes.findIndex(e => e.uri === track.uri);
+      this.votes[index].votes++;
+    } else {
+      this.votes.push({
+        name: track.artists[0].name + " - " + track.name,
+        uri: track.uri,
+        votes: 1
+      });
+    }
   }
 };
 

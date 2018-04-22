@@ -61,6 +61,11 @@ class App extends Component {
     });
   }
 
+  handleVote(key, event) {
+    console.log(this.state.searchTracks[key]);
+    this.socket.emit("vote", this.state.searchTracks[key]);
+  }
+
   render() {
     // sort votes
     this.state.votes.sort(function(a, b) {
@@ -106,6 +111,7 @@ class App extends Component {
                   {track.artists[0].name + " - " + track.name}
                 </div>
                 <button
+                  onClick={this.handleVote.bind(this, key)}
                   type="button"
                   className="btn btn-primary"
                   style={{ marginLeft: "auto" }}
@@ -134,6 +140,7 @@ class App extends Component {
                 </span>
                 <div style={{ marginRight: "5px" }}>{vote.name}</div>
                 <button
+                  onClick={this.handleVote.bind(this, key)}
                   type="button"
                   className="btn btn-primary"
                   style={{ marginLeft: "auto" }}
