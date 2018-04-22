@@ -16,7 +16,7 @@ const spotifyService = {
         "user-read-currently-playing",
         "user-modify-playback-state"
       ],
-      redirectUri = "http://localhost:9000/callback",
+      redirectUri = "http://autodj.tk:9000/callback",
       clientId = "bec599db35c646c498f4d4b865415a1d",
       clientSecret = "81b778cae9e24ad883e7e25615782f40";
 
@@ -27,7 +27,8 @@ const spotifyService = {
     });
 
     const authorizeURL = this.spotifyApi.createAuthorizeURL(scopes);
-    opn(authorizeURL, { app: ["chrome.exe"] });
+    console.log(authorizeURL);
+    //opn(authorizeURL, { app: ["chrome.exe"] });
   },
 
   postInit: function(code, io) {
