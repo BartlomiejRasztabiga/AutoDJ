@@ -3,6 +3,7 @@ import opn from "opn";
 
 const spotifyService = {
   userCount: 0,
+  votes: new Map(),
 
   init: function() {
     console.log("init");
@@ -16,10 +17,9 @@ const spotifyService = {
         "user-read-currently-playing",
         "user-modify-playback-state"
       ],
-      redirectUri = "http://localhost:3000/callback",
+      redirectUri = "http://localhost:9000/callback",
       clientId = "bec599db35c646c498f4d4b865415a1d",
-      clientSecret = "81b778cae9e24ad883e7e25615782f40",
-      state = "some-state-of-my-choice";
+      clientSecret = "81b778cae9e24ad883e7e25615782f40";
 
     this.spotifyApi = new SpotifyWebApi({
       redirectUri: redirectUri,
@@ -27,7 +27,7 @@ const spotifyService = {
       clientSecret: clientSecret
     });
 
-    const authorizeURL = this.spotifyApi.createAuthorizeURL(scopes, state);
+    const authorizeURL = this.spotifyApi.createAuthorizeURL(scopes);
     opn(authorizeURL, { app: ["chrome.exe"] });
   },
 
@@ -54,25 +54,26 @@ const spotifyService = {
     io.on("connection", socket => {
       this.userCount += 1;
 
-      socket.on("play", trackID => {
-        this.getCurrent(trackID);
+      this.spotifyApi.getMyCurrentPlayingTrack().then(data => {
+        const initialResponse = {
+          currentlyPlaying:
+            data.body.item.artists[0].name + " - " + data.body.item.name,
+          votes: this.votes
+        };
+
+        socket.emit("initialResponse", initialResponse);
       });
+
+      setInterval(() => {
+        this.spotifyApi.getMyCurrentPlayingTrack().then(data => {
+          socket.emit("currentlyPlaying", data.body);
+        });
+      }, 10000); // every 10 seconds
 
       socket.on("disconnect", () => {
         this.userCount -= 1;
       });
     });
-  },
-
-  getCurrent() {
-    this.spotifyApi.getMyCurrentPlaybackState({}).then(
-      data => {
-        console.log(data.body);
-      },
-      function(err) {
-        console.log("Something went wrong!", err);
-      }
-    );
   }
 };
 

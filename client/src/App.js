@@ -1,18 +1,44 @@
 import React, { Component } from "react";
-import logo from "./logo.svg";
+import socketIOClient from "socket.io-client";
 import "./App.css";
 
 class App extends Component {
+  URL = "http://192.168.1.24:9000";
+  socket = socketIOClient(this.URL);
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      currentlyPlaying: ""
+    };
+
+    this.socket.on("initialResponse", initialResponse => {
+      console.log(initialResponse);
+
+      this.setState({
+        currentlyPlaying: initialResponse.currentlyPlaying
+      });
+    });
+
+    this.socket.on("currentlyPlaying", currentlyPlaying => {
+      this.setState({
+        currentlyPlaying:
+          currentlyPlaying.item.artists[0].name +
+          " - " +
+          currentlyPlaying.item.name
+      });
+    });
+  }
+
   render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
+      <div className="container-fluid">
+        <div className="row justify-content-center">
+          <h2>Currently playing</h2>
+        </div>
+        <div className="row justify-content-center">
+          <h4>{this.state.currentlyPlaying}</h4>
+        </div>
       </div>
     );
   }
