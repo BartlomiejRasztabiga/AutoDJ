@@ -64,8 +64,28 @@ const spotifyService = {
       setInterval(() => {
         this.spotifyApi.getMyCurrentPlayingTrack().then(data => {
           socket.emit("currentlyPlaying", data.body);
+          socket.emit("votes", this.votes);
+
+          if (!data.body.is_playing) {
+            //play next song
+            if (this.votes.length > 0) {
+              //sort votes
+              const sortedVotes = JSON.parse(JSON.stringify(this.votes));
+              sortedVotes.sort(function(a, b) {
+                if (a.votes < b.votes) return 1;
+                if (a.votes > b.votes) return -1;
+                return 0;
+              });
+
+              const topTrack = sortedVotes[0];
+              this.votes = sortedVotes.filter(e => e.uri !== topTrack.uri);
+              socket.emit("votes", this.votes);
+
+              this.spotifyApi.play({ uris: [topTrack.uri] });
+            }
+          }
         });
-      }, 10000); // every 10 seconds
+      }, 5000); // every 5 seconds
 
       socket.on("searchTracksRequest", trackName => {
         this.spotifyApi.searchTracks(trackName, { limit: 5 }).then(tracks => {
