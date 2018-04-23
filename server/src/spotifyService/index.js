@@ -94,8 +94,8 @@ const spotifyService = {
         });
       });
 
-      socket.on("vote", track => {
-        this.updateVote(track);
+      socket.on("vote", data => {
+        this.updateVote(data, socket);
         socket.emit("votes", this.votes);
       });
 
@@ -103,15 +103,37 @@ const spotifyService = {
     });
   },
 
-  updateVote(track) {
-    if (this.votes.some(e => e.uri === track.uri)) {
-      const index = this.votes.findIndex(e => e.uri === track.uri);
+  updateVote(data, socket) {
+    if (!data.track) {
+      //super fix
+      return;
+    }
+
+    let voteDuplication = false;
+    this.votes.forEach(vote => {
+      // check for vote duplication
+      if (
+        vote.votesUUIDs.some(
+          e => e === data.clientUUID && vote.uri === data.track.uri
+        )
+      ) {
+        //duplication
+        socket.emit("voteDuplication");
+        voteDuplication = true;
+      }
+    });
+
+    if (voteDuplication) return;
+    if (this.votes.some(e => e.uri === data.track.uri)) {
+      const index = this.votes.findIndex(e => e.uri === data.track.uri);
       this.votes[index].votes++;
+      this.votes[index].votesUUIDs.push(data.clientUUID);
     } else {
       this.votes.push({
-        name: track.artists[0].name + " - " + track.name,
-        uri: track.uri,
-        votes: 1
+        name: data.track.artists[0].name + " - " + data.track.name,
+        uri: data.track.uri,
+        votes: 1,
+        votesUUIDs: [data.clientUUID]
       });
     }
   }

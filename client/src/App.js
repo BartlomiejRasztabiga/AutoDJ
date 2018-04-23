@@ -6,14 +6,22 @@ import "./App.css";
 class App extends Component {
   URL = "http://autodj.tk:9000";
   socket = socketIOClient(this.URL);
+  clientUUID = localStorage.getItem("clientUUID");
 
   constructor(props) {
     super(props);
+
+    if (!this.clientUUID) {
+      localStorage.setItem("clientUUID", this.guid());
+      this.clientUUID = localStorage.getItem("clientUUID");
+    }
+
     this.state = {
       currentlyPlaying: "",
       votes: [],
       searchTrackName: "",
-      searchTracks: []
+      searchTracks: [],
+      voteDuplication: false
     };
 
     this.socket.on("initialResponse", initialResponse => {
@@ -40,7 +48,14 @@ class App extends Component {
 
     this.socket.on("searchTracksResults", tracks => {
       this.setState({
-        searchTracks: tracks.items
+        searchTracks: tracks.items,
+        voteDuplication: false
+      });
+    });
+
+    this.socket.on("voteDuplication", () => {
+      this.setState({
+        voteDuplication: true
       });
     });
 
@@ -61,17 +76,48 @@ class App extends Component {
   }
 
   handleVoteFromSearch(key, event) {
-    this.socket.emit("vote", this.state.searchTracks[key]);
+    this.socket.emit("vote", {
+      track: this.state.searchTracks[key],
+      clientUUID: this.clientUUID
+    });
     this.setState({
-      searchTracks: []
+      searchTracks: [],
+      voteDuplication: false
     });
   }
 
   handleVote(key, event) {
-    this.socket.emit("vote", this.state.votes[key]);
-    this.setState({
-      searchTracks: []
+    this.socket.emit("vote", {
+      track: this.state.votes[key],
+      clientUUID: this.clientUUID
     });
+    this.setState({
+      searchTracks: [],
+      voteDuplication: false
+    });
+  }
+
+  guid() {
+    function s4() {
+      return Math.floor((1 + Math.random()) * 0x10000)
+        .toString(16)
+        .substring(1);
+    }
+
+    return (
+      s4() +
+      s4() +
+      "-" +
+      s4() +
+      "-" +
+      s4() +
+      "-" +
+      s4() +
+      "-" +
+      s4() +
+      s4() +
+      s4()
+    );
   }
 
   render() {
@@ -129,6 +175,18 @@ class App extends Component {
               </div>
             ))}
           </FlipMove>
+        </div>
+        <div
+          className="row justify-content-center"
+          style={{
+            marginTop: "10px",
+            display: this.state.voteDuplication ? "flex" : "none"
+          }}
+        >
+          <div className="alert alert-danger">
+            <strong>Vote duplication!</strong> You have already voted on that
+            song!
+          </div>
         </div>
         <div
           className="row justify-content-center"
