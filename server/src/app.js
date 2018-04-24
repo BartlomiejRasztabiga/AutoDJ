@@ -2,6 +2,7 @@ import express from "express";
 import http from "http";
 import https from "https";
 import helmet from "helmet";
+import fs from "fs";
 import spotifyService from "./spotifyService";
 
 const options = {
