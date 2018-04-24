@@ -3,6 +3,7 @@ import opn from "opn";
 
 const spotifyService = {
   votes: [],
+  skipVotes: [],
 
   init: function() {
     console.log("init");
@@ -46,6 +47,19 @@ const spotifyService = {
         console.log("Something went wrong!", err);
       }
     );
+
+    setInterval(() => {
+      this.spotifyApi.refreshAccessToken().then(
+        data => {
+          console.log("token refresh");
+
+          this.spotifyApi.setAccessToken(data.body["access_token"]);
+        },
+        function(err) {
+          console.log("Something went wrong!", err);
+        }
+      );
+    }, 50 * 60 * 1000); //50min
   },
 
   start: function(io) {
@@ -53,6 +67,7 @@ const spotifyService = {
 
     io.on("connection", socket => {
       this.spotifyApi.getMyCurrentPlayingTrack().then(data => {
+        if (data.body.is_playing === undefined) return;
         const initialResponse = {
           currentlyPlaying:
             data.body.item.artists[0].name + " - " + data.body.item.name,
@@ -64,6 +79,7 @@ const spotifyService = {
 
       setInterval(() => {
         this.spotifyApi.getMyCurrentPlayingTrack().then(data => {
+          if (data.body.is_playing === undefined) return;
           socket.emit("currentlyPlaying", data.body);
           socket.emit("votes", this.votes);
 
@@ -72,7 +88,7 @@ const spotifyService = {
             if (this.votes.length > 0) {
               //sort votes
               const sortedVotes = JSON.parse(JSON.stringify(this.votes));
-              sortedVotes.sort(function(a, b) {
+              sortedVotes.sort((a, b) => {
                 if (a.votes < b.votes) return 1;
                 if (a.votes > b.votes) return -1;
                 return 0;
@@ -89,7 +105,7 @@ const spotifyService = {
       }, 5000); // every 5 seconds
 
       socket.on("searchTracksRequest", trackName => {
-        this.spotifyApi.searchTracks(trackName, { limit: 5 }).then(tracks => {
+        this.spotifyApi.searchTracks(trackName, { limit: 10 }).then(tracks => {
           socket.emit("searchTracksResults", tracks.body.tracks);
         });
       });
