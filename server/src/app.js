@@ -6,8 +6,8 @@ import fs from "fs";
 import spotifyService from "./spotifyService";
 
 const options = {
-  cert: fs.readFileSync("./sslcert/fullchain.pem"),
-  key: fs.readFileSync("./sslcert/privkey.pem")
+  cert: fs.readFileSync("../sslcert/fullchain.pem"),
+  key: fs.readFileSync("../sslcert/privkey.pem")
 };
 
 const app = express();
