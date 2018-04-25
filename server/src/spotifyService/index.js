@@ -17,7 +17,7 @@ const spotifyService = {
         "user-read-currently-playing",
         "user-modify-playback-state"
       ],
-      redirectUri = "https://autodj.tk:9443/callback",
+      redirectUri = "http://localhost:9000/callback",
       clientId = "bec599db35c646c498f4d4b865415a1d",
       clientSecret = "81b778cae9e24ad883e7e25615782f40";
 
@@ -28,8 +28,8 @@ const spotifyService = {
     });
 
     const authorizeURL = this.spotifyApi.createAuthorizeURL(scopes);
-    console.log(authorizeURL);
-    //opn(authorizeURL, { app: ["chrome.exe"] });
+    //console.log(authorizeURL);
+    opn(authorizeURL, { app: ["chrome.exe"] });
   },
 
   postInit: function(code, io) {
@@ -80,8 +80,6 @@ const spotifyService = {
       setInterval(() => {
         this.spotifyApi.getMyCurrentPlayingTrack().then(data => {
           if (data.body.is_playing === undefined) return;
-          socket.emit("currentlyPlaying", data.body);
-          socket.emit("votes", this.votes);
 
           if (!data.body.is_playing) {
             //play next song
@@ -94,13 +92,16 @@ const spotifyService = {
                 return 0;
               });
 
+              //console.log('co jest kurwa i czemu tak szybko')
+
               const topTrack = sortedVotes[0];
               this.votes = sortedVotes.filter(e => e.uri !== topTrack.uri);
-              socket.emit("votes", this.votes);
 
-              this.spotifyApi.play({ uris: [topTrack.uri] });
+              this.spotifyApi.play({ uris: [topTrack.uri] }).then(() => {});
             }
           }
+          socket.emit("currentlyPlaying", data.body);
+          socket.emit("votes", this.votes);
         });
       }, 5000); // every 5 seconds
 
