@@ -17,7 +17,7 @@ const spotifyService = {
         "user-read-currently-playing",
         "user-modify-playback-state"
       ],
-      redirectUri = "http://192.168.1.24:9000/callback",
+      redirectUri = "https://autodj.tk:9000/callback",
       clientId = "bec599db35c646c498f4d4b865415a1d",
       clientSecret = "81b778cae9e24ad883e7e25615782f40";
 
