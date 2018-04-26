@@ -17,7 +17,7 @@ const spotifyService = {
         "user-read-currently-playing",
         "user-modify-playback-state"
       ],
-      redirectUri = "https://autodj.tk:9443/callback",
+      redirectUri = "http://192.168.1.24:9000/callback",
       clientId = "bec599db35c646c498f4d4b865415a1d",
       clientSecret = "81b778cae9e24ad883e7e25615782f40";
 
@@ -77,34 +77,6 @@ const spotifyService = {
         socket.emit("initialResponse", initialResponse);
       });
 
-      setInterval(() => {
-        this.spotifyApi.getMyCurrentPlayingTrack().then(data => {
-          if (data.body.is_playing === undefined) return;
-
-          if (!data.body.is_playing) {
-            //play next song
-            if (this.votes.length > 0) {
-              //sort votes
-              const sortedVotes = JSON.parse(JSON.stringify(this.votes));
-              sortedVotes.sort((a, b) => {
-                if (a.votes < b.votes) return 1;
-                if (a.votes > b.votes) return -1;
-                return 0;
-              });
-
-              //console.log('co jest kurwa i czemu tak szybko')
-
-              const topTrack = sortedVotes[0];
-              this.votes = sortedVotes.filter(e => e.uri !== topTrack.uri);
-
-              this.spotifyApi.play({ uris: [topTrack.uri] }).then(() => {});
-            }
-          }
-          socket.emit("currentlyPlaying", data.body);
-          socket.emit("votes", this.votes);
-        });
-      }, 5000); // every 5 seconds
-
       socket.on("searchTracksRequest", trackName => {
         this.spotifyApi.searchTracks(trackName, { limit: 10 }).then(tracks => {
           socket.emit("searchTracksResults", tracks.body.tracks);
@@ -113,11 +85,41 @@ const spotifyService = {
 
       socket.on("vote", data => {
         this.updateVote(data, socket);
-        socket.emit("votes", this.votes);
+        io.emit("votes", this.votes);
       });
 
       socket.on("disconnect", () => {});
     });
+
+    setInterval(() => {
+      this.spotifyApi.getMyCurrentPlayingTrack().then(data => {
+        if (data.body.is_playing === undefined) return;
+
+        if (!data.body.is_playing) {
+          //play next song
+          if (this.votes.length > 0) {
+            //sort votes
+
+            console.log("we can choose another song");
+
+            const sortedVotes = JSON.parse(JSON.stringify(this.votes));
+            sortedVotes.sort((a, b) => {
+              if (a.votes < b.votes) return 1;
+              if (a.votes > b.votes) return -1;
+              return 0;
+            });
+
+            const topTrack = sortedVotes[0];
+            this.votes = sortedVotes.filter(e => e.uri !== topTrack.uri);
+
+            this.spotifyApi.play({ uris: [topTrack.uri] }).then(() => {});
+          }
+        }
+
+        io.emit("currentlyPlaying", data.body);
+        io.emit("votes", this.votes);
+      });
+    }, 5000); // every 5 seconds
   },
 
   updateVote(data, socket) {
