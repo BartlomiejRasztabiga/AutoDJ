@@ -1,7 +1,18 @@
 import React, { Component } from "react";
 import socketIOClient from "socket.io-client";
-import FlipMove from "react-flip-move";
 import "./App.css";
+import {
+  AppBar,
+  Input,
+  List,
+  ListItem,
+  ListSubheader,
+  Snackbar,
+  Toolbar,
+  Typography
+} from "material-ui";
+import { withStyles } from "material-ui/styles";
+import Song from "./Song";
 
 class App extends Component {
   URL = "https://autodj.tk:9443";
@@ -61,11 +72,11 @@ class App extends Component {
 
     this.handleSearchSubmit = this.handleSearchSubmit.bind(this);
     this.handleSearchChange = this.handleSearchChange.bind(this);
+    this.handleCloseSnackbar = this.handleCloseSnackbar.bind(this);
   }
 
   handleSearchSubmit(event) {
     event.preventDefault();
-
     this.socket.emit("searchTracksRequest", this.state.searchTrackName);
   }
 
@@ -95,6 +106,10 @@ class App extends Component {
       searchTracks: [],
       voteDuplication: false
     });
+  }
+
+  handleCloseSnackbar() {
+    this.setState({ voteDuplication: false });
   }
 
   guid() {
@@ -128,98 +143,113 @@ class App extends Component {
       return 0;
     });
 
+    const duplicateMessage = (
+      <span id="message-id">You've already voted on this one</span>
+    );
+    const { votes, searchTracks, currentlyPlaying } = this.state;
+    const { classes } = this.props;
     return (
-      <div className="container-fluid">
-        <div className="row justify-content-center">
-          <h2>Currently playing</h2>
-        </div>
-        <div className="row justify-content-center">
-          <h4>{this.state.currentlyPlaying}</h4>
-        </div>
-        <div
-          className="row justify-content-center"
-          style={{ marginTop: "30px" }}
+      <div>
+        <AppBar
+          className={`${
+            this.state.currentlyPlaying ? "appBarOn" : "appBarOff"
+          } mb-2`}
+          position="static"
         >
-          <h2>Search for a song</h2>
-        </div>
-        <div className="row justify-content-center">
-          <form onSubmit={this.handleSearchSubmit}>
-            <div className="form-group d-flex">
-              <input
-                type="text"
-                name="trackName"
-                className="form-control"
-                onChange={this.handleSearchChange}
-              />
-              <button type="submit" className="btn btn-primary">
-                Search
-              </button>
-            </div>
-          </form>
-        </div>
-        <div className="row justify-content-center">
-          <FlipMove duration={750} easing="ease-out">
-            {this.state.searchTracks.map((track, key) => (
-              <div className="d-flex" style={{ margin: "5px" }}>
-                <div key={key} style={{ marginRight: "5px" }}>
-                  {track.artists[0].name + " - " + track.name}
-                </div>
-                <button
-                  onClick={this.handleVoteFromSearch.bind(this, key)}
-                  type="button"
-                  className="btn btn-primary"
-                  style={{ marginLeft: "auto" }}
-                >
-                  Vote
-                </button>
-              </div>
-            ))}
-          </FlipMove>
-        </div>
-        <div
-          className="row justify-content-center"
-          style={{
-            marginTop: "10px",
-            display: this.state.voteDuplication ? "flex" : "none"
+          <Toolbar>
+            <Typography variant="title" color="inherit">
+              {currentlyPlaying ? currentlyPlaying : "AutoDJ"}
+            </Typography>
+          </Toolbar>
+        </AppBar>
+
+        <List className={classes.root} subheader={<li />}>
+          <li key={"search1"} className={classes.listSection}>
+            <ul className={classes.ul}>
+              <ListSubheader>
+                <form onSubmit={this.handleSearchSubmit}>
+                  <Input
+                    placeholder="Search"
+                    className={classes.input}
+                    fullWidth={true}
+                    onChange={this.handleSearchChange}
+                    inputProps={{
+                      "aria-label": "Description"
+                    }}
+                  />
+                </form>
+              </ListSubheader>
+              {searchTracks.map((song, key) => (
+                <ListItem key={key}>
+                  <Song
+                    artist={song.artists[0].name}
+                    name={song.name}
+                    votes={song.votes}
+                    onVote={this.handleVoteFromSearch.bind(this, key)}
+                  />
+                </ListItem>
+              ))}
+            </ul>
+          </li>
+          <li key={"queue"} className={classes.listSection}>
+            <ul className={classes.ul}>
+              <ListSubheader>Songs in queue</ListSubheader>
+              {votes.map((song, key) => (
+                <ListItem>
+                  <Song
+                    name={song.name}
+                    votes={song.votes}
+                    onVote={this.handleVote.bind(this, key)}
+                  />
+                </ListItem>
+              ))}
+            </ul>
+          </li>
+        </List>
+        <Snackbar
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          open={this.state.voteDuplication}
+          onClose={this.handleCloseSnackbar}
+          SnackbarContentProps={{
+            "aria-describedby": "message-id"
           }}
-        >
-          <div className="alert alert-danger">
-            <strong>Vote duplication!</strong> You have already voted on that
-            song!
-          </div>
-        </div>
-        <div
-          className="row justify-content-center"
-          style={{ marginTop: "30px" }}
-        >
-          <h2>Votes</h2>
-        </div>
-        <div className="row justify-content-center">
-          <FlipMove duration={750} easing="ease-out">
-            {this.state.votes.map((vote, key) => (
-              <div key={key} className="d-flex" style={{ margin: "5px" }}>
-                <span
-                  className="badge badge-pill badge-primary"
-                  style={{ height: "20px", marginRight: "5px" }}
-                >
-                  {vote.votes} votes
-                </span>
-                <div style={{ marginRight: "5px" }}>{vote.name}</div>
-                <button
-                  onClick={this.handleVote.bind(this, key)}
-                  type="button"
-                  className="btn btn-primary"
-                  style={{ marginLeft: "auto" }}
-                >
-                  Vote
-                </button>
-              </div>
-            ))}
-          </FlipMove>
-        </div>
+          message={duplicateMessage}
+        />
       </div>
     );
   }
 }
 
-export default App;
+const styles = theme => ({
+  root: {
+    width: "100%",
+    backgroundColor: theme.palette.background.paper,
+    position: "relative",
+    overflow: "auto",
+
+    maxHeight: "80vh"
+  },
+  appBar: {
+    background: "linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)"
+  },
+  listSection: {
+    backgroundColor: "inherit"
+  },
+  ul: {
+    backgroundColor: "inherit",
+    padding: 0
+  },
+  input: {
+    // margin: theme.spacing.unit,
+  },
+  icon: {
+    margin: theme.spacing.unit
+  },
+  margin: {
+    margin: theme.spacing.unit
+  },
+  button: {
+    margin: theme.spacing.unit
+  }
+});
+export default withStyles(styles)(App);
