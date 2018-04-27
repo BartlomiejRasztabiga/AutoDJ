@@ -43,7 +43,7 @@ const spotifyService = {
 
         this.start(io);
       },
-      function(err) {
+      err => {
         console.log("Something went wrong!", err);
       }
     );
@@ -55,7 +55,7 @@ const spotifyService = {
 
           this.spotifyApi.setAccessToken(data.body["access_token"]);
         },
-        function(err) {
+        err => {
           console.log("Something went wrong!", err);
         }
       );
@@ -63,8 +63,6 @@ const spotifyService = {
   },
 
   start: function(io) {
-    console.log("start");
-
     io.on("connection", socket => {
       this.spotifyApi.getMyCurrentPlayingTrack().then(data => {
         if (data.body.is_playing === undefined) return;
@@ -99,8 +97,6 @@ const spotifyService = {
           //play next song
           if (this.votes.length > 0) {
             //sort votes
-
-            console.log("we can choose another song");
 
             const sortedVotes = JSON.parse(JSON.stringify(this.votes));
             sortedVotes.sort((a, b) => {
