@@ -3,16 +3,21 @@ import socketIOClient from "socket.io-client";
 import "./App.css";
 import {
   AppBar,
+  createMuiTheme,
+  IconButton,
   Input,
+  InputAdornment,
   List,
   ListItem,
   ListSubheader,
+  MuiThemeProvider,
   Snackbar,
   Toolbar,
   Typography
 } from "material-ui";
 import { withStyles } from "material-ui/styles";
 import Song from "./Song";
+import Clear from "@material-ui/icons/Clear";
 
 class App extends Component {
   URL = "https://autodj.tk:9443";
@@ -73,6 +78,7 @@ class App extends Component {
     this.handleSearchSubmit = this.handleSearchSubmit.bind(this);
     this.handleSearchChange = this.handleSearchChange.bind(this);
     this.handleCloseSnackbar = this.handleCloseSnackbar.bind(this);
+    this.handleCloseClick = this.handleCloseClick.bind(this);
   }
 
   handleSearchSubmit(event) {
@@ -110,6 +116,13 @@ class App extends Component {
 
   handleCloseSnackbar() {
     this.setState({ voteDuplication: false });
+  }
+
+  handleCloseClick() {
+    this.setState({
+      searchTrackName: "",
+      searchTracks: []
+    });
   }
 
   guid() {
@@ -168,15 +181,28 @@ class App extends Component {
             <ul className={classes.ul}>
               <ListSubheader>
                 <form onSubmit={this.handleSearchSubmit}>
-                  <Input
-                    placeholder="Search"
-                    className={classes.input}
-                    fullWidth={true}
-                    onChange={this.handleSearchChange}
-                    inputProps={{
-                      "aria-label": "Description"
-                    }}
-                  />
+                  <MuiThemeProvider theme={theme}>
+                    <Input
+                      placeholder="Search"
+                      className={classes.input}
+                      fullWidth={true}
+                      onChange={this.handleSearchChange}
+                      value={this.state.searchTrackName}
+                      inputProps={{
+                        "aria-label": "Description"
+                      }}
+                      endAdornment={
+                        <InputAdornment position="end">
+                          <IconButton
+                            aria-label="Toggle password visibility"
+                            onClick={this.handleCloseClick}
+                          >
+                            <Clear />
+                          </IconButton>
+                        </InputAdornment>
+                      }
+                    />
+                  </MuiThemeProvider>
                 </form>
               </ListSubheader>
               {searchTracks.map((song, key) => (
@@ -220,6 +246,17 @@ class App extends Component {
   }
 }
 
+const theme = createMuiTheme({
+  palette: {
+    primary: {
+      light: "#e73c7e",
+      main: "#e73c7e",
+      dark: "#e73c7e",
+      contrastText: "#000"
+    }
+  }
+});
+
 const styles = theme => ({
   root: {
     width: "100%",
@@ -229,18 +266,12 @@ const styles = theme => ({
 
     maxHeight: "80vh"
   },
-  appBar: {
-    background: "linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)"
-  },
   listSection: {
     backgroundColor: "inherit"
   },
   ul: {
     backgroundColor: "inherit",
     padding: 0
-  },
-  input: {
-    // margin: theme.spacing.unit,
   },
   icon: {
     margin: theme.spacing.unit
