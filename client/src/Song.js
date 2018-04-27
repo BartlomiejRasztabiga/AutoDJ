@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, createMuiTheme, MuiThemeProvider } from "material-ui";
-
+import "./index.css";
 const theme = createMuiTheme({
   palette: {
     primary: {
@@ -24,7 +24,7 @@ const Song = props => {
         <Button
           mini={true}
           color="primary"
-          className="my-auto"
+          className="my-auto noOutline"
           onClick={onVote}
         >{`vote ${votes ? votes : ""}`}</Button>
       </MuiThemeProvider>

@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import socketIOClient from "socket.io-client";
 import "./App.css";
+import "./index.css";
 import {
   AppBar,
   createMuiTheme,
@@ -194,6 +195,7 @@ class App extends Component {
                       endAdornment={
                         <InputAdornment position="end">
                           <IconButton
+                            className="noOutline"
                             aria-label="Toggle password visibility"
                             onClick={this.handleCloseClick}
                           >
